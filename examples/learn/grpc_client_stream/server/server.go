@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/learn/grpc_client_stream_rpc/api"
+	pb "google.golang.org/grpc/examples/learn/grpc_client_stream/api"
 	"io"
 	"log"
 	"net"

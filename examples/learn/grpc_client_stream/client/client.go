@@ -5,7 +5,7 @@ import (
 	"flag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "google.golang.org/grpc/examples/learn/grpc_client_stream_rpc/api"
+	pb "google.golang.org/grpc/examples/learn/grpc_client_stream/api"
 	"google.golang.org/grpc/resolver"
 	"log"
 	"math/rand"
