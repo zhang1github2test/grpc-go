@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "/api";
+
+// The Calculator service definition.
+service Calculator {
+  // Sends a greeting
+  rpc Add (AddRequest) returns (AddReply) {}
+}
+
+// The request message containing the user's name.
+message AddRequest {
+  int32 a = 1;
+  int32 b = 2;
+}
+
+// The response message containing the Calculator
+message AddReply {
+  int32 reply = 1;
+}

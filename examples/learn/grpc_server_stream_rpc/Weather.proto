@@ -1,0 +1,22 @@
+syntax = "proto3";
+option go_package = "/api";
+
+// The Weather service definition.
+service WeatherService {
+  // Sends a weather quest
+  rpc ListWeather(WeatherRequest) returns (stream WeatherResponse) {}
+}
+
+// 天气请求对象
+message WeatherRequest {
+  // 要查询天气的日期 格式2006-01-02
+  string day = 1;
+}
+
+// The response message containing the timestamp and temperature
+message WeatherResponse {
+  float temperature = 1;
+  // 天气对应的时间戳
+  int64 timestamp = 2;
+
+}
