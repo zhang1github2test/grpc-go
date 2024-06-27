@@ -25,14 +25,14 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/examples/data"
 	"log"
 	"net"
 	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/examples/data"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -63,6 +63,7 @@ func main() {
 		grpc.Creds(credentials.NewServerTLSFromCert(&cert)),
 	}
 	s := grpc.NewServer(opts...)
+	//s := grpc.NewServer()
 	pb.RegisterEchoServer(s, &ecServer{})
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {

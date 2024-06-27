@@ -47,19 +47,24 @@ type server struct {
 	pb.UnimplementedEchoServer
 }
 
+// UnaryEcho 普通类型方法设置和获取元数据
 func (s *server) UnaryEcho(ctx context.Context, in *pb.EchoRequest) (*pb.EchoResponse, error) {
 	fmt.Printf("--- UnaryEcho ---\n")
 	// Create trailer in defer to record function return time.
 	defer func() {
+		// 处理完成后设置trailer元数据
 		trailer := metadata.Pairs("timestamp", time.Now().Format(timestampFormat))
 		grpc.SetTrailer(ctx, trailer)
 	}()
 
 	// Read metadata from client.
+	// 读取来自客户的元数据
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.DataLoss, "UnaryEcho: failed to get metadata")
 	}
+
+	// 打印从客户端获取到元数据
 	if t, ok := md["timestamp"]; ok {
 		fmt.Printf("timestamp from metadata:\n")
 		for i, e := range t {
@@ -68,6 +73,7 @@ func (s *server) UnaryEcho(ctx context.Context, in *pb.EchoRequest) (*pb.EchoRes
 	}
 
 	// Create and send header.
+	// 设置给客户的请header元数据
 	header := metadata.New(map[string]string{"location": "MTV", "timestamp": time.Now().Format(timestampFormat)})
 	grpc.SendHeader(ctx, header)
 

@@ -54,7 +54,7 @@ func (ts TokenSource) GetRequestMetadata(ctx context.Context, uri ...string) (ma
 
 // RequireTransportSecurity indicates whether the credentials requires transport security.
 func (ts TokenSource) RequireTransportSecurity() bool {
-	return true
+	return false
 }
 
 // removeServiceNameFromJWTURI removes RPC service name from URI.

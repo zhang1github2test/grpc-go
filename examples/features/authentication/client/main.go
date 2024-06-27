@@ -23,23 +23,22 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
-	"time"
-
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
 	"google.golang.org/grpc/examples/data"
 	ecpb "google.golang.org/grpc/examples/features/proto/echo"
+	"google.golang.org/grpc/resolver"
+	"log"
 )
 
 var addr = flag.String("addr", "localhost:50051", "the address to connect to")
 
 func callUnaryEcho(client ecpb.EchoClient, message string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	resp, err := client.UnaryEcho(ctx, &ecpb.EchoRequest{Message: message})
+	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
+	resp, err := client.UnaryEcho(context.Background(), &ecpb.EchoRequest{Message: message})
 	if err != nil {
 		log.Fatalf("client.UnaryEcho(_) = _, %v: ", err)
 	}
@@ -48,7 +47,8 @@ func callUnaryEcho(client ecpb.EchoClient, message string) {
 
 func main() {
 	flag.Parse()
-
+	// 添加这行，防止无法解析，导致连接超时
+	resolver.SetDefaultScheme("passthrough")
 	// Set up the credentials for the connection.
 	perRPC := oauth.TokenSource{TokenSource: oauth2.StaticTokenSource(fetchToken())}
 	creds, err := credentials.NewClientTLSFromFile(data.Path("x509/ca_cert.pem"), "x.test.example.com")
@@ -65,7 +65,6 @@ func main() {
 		// credentials.
 		grpc.WithTransportCredentials(creds),
 	}
-
 	conn, err := grpc.NewClient(*addr, opts...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

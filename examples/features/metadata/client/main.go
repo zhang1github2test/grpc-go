@@ -43,6 +43,7 @@ const (
 func unaryCallWithMetadata(c pb.EchoClient, message string) {
 	fmt.Printf("--- unary ---\n")
 	// Create metadata and context.
+	// 设置发送个服务的metadata, key为timestamp, value为当前时间点
 	md := metadata.Pairs("timestamp", time.Now().Format(timestampFormat))
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
