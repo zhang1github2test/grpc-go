@@ -1,4 +1,6 @@
-	gRPC 是一个高性能、开源的 RPC 框架，它最初由 Google 开发并开源。它使用 HTTP/2 作为传输协议，支持多种编程语言，并且通过 Protocol Buffers（protobuf）来定义接口和数据结构。以下是快速入门 gRPC 的步骤：
+​	gRPC 是一个高性能、开源的 RPC 框架，它最初由 Google 开发并开源。它使用 HTTP/2 作为传输协议，支持多种编程语言，并且通过 Protocol Buffers（protobuf）来定义接口和数据结构。以下是快速入门 gRPC 的步骤：
+
+# 一、快速入门
 
 ### 1、环境安装
 
@@ -165,6 +167,8 @@ func main() {
 
 ```
 
+# 二、GRPC的四种支持的四种方法模式
+
 ## 1. 简单RPC（Unary RPC）
 
 ### 描述
@@ -174,6 +178,8 @@ func main() {
 ### 应用场景
 
 - 简单的查询和响应操作，如获取用户信息、查询数据库记录等。
+
+  
 
 ## 2. 服务器端流式RPC（Server Streaming RPC）
 
@@ -398,5 +404,55 @@ func (s *server) Chat(stream pb.Greeter_ChatServer) error {
 | 客户端流式RPC        | 多请求-单响应 | 批量上传           |
 | 双向流式RPC          | 多请求-多响应 | 实时双向通信       |
 
+# 三、GRPC的metata数据
 
+在 gRPC 中，Metadata 是一种用于在客户端和服务器之间传递附加信息的机制。它分为两种：
+
+1. **Header Metadata**：在 RPC 调用开始时传递，用于传递身份验证、初始化参数等信息。
+2. **Trailer Metadata**：在 RPC 调用结束时传递，用于传递状态码、处理结果等信息。
+
+好的，以下是 Header Metadata 和 Trailer Metadata 的相同点和不同点的总结表格：
+
+| 特性               | Header Metadata                  | Trailer Metadata              |
+| ------------------ | -------------------------------- | ----------------------------- |
+| **相同点**         |                                  |                               |
+| 传递机制           | gRPC 的元数据传递机制的一部分    | gRPC 的元数据传递机制的一部分 |
+| 数据类型           | 键值对 (Key-Value Pairs)         | 键值对 (Key-Value Pairs)      |
+| 传递目的           | 传递附加信息                     | 传递附加信息                  |
+| **不同点**         |                                  |                               |
+| 传递时机           | RPC 调用开始时                   | RPC 调用结束时                |
+| 用途               | 身份验证、初始化参数、追踪信息等 | 状态码、处理结果、统计信息等  |
+| 设置位置（客户端） | `metadata.NewOutgoingContext`    | 在 RPC 调用之后获取           |
+| 设置位置（服务器） | 在处理请求开始时设置             | 在处理请求结束时设置          |
+
+这个表格展示了 Header Metadata 和 Trailer Metadata 的相同点和不同点，帮助理解它们在 gRPC 中的不同用途和使用时机。
+
+
+
+# 四、GRPC的拦截器
+
+​	gRPC 提供了简单的 API 来实现和安装拦截器，可以按每个 ClientConn/Server 进行设置。拦截器作为应用程序和 gRPC 之间的一层，可以用来观察或控制 gRPC 的行为。拦截器可以用于日志记录、身份验证/授权、指标收集以及其他跨 RPC 共享的功能。
+
+## 1.客户端拦截器
+
+###  一元拦截器(`UnaryClientInterceptor`)  
+
+
+
+### 流拦截器 (`StreamClientInterceptor`)
+
+## 2.服务端拦截器
+
+###  一元拦截器(`UnaryClientInterceptor`)  
+
+### 流拦截器 (`StreamClientInterceptor`)
+
+| **类别** | **拦截器类型**                        | **函数签名**                                                 | **说明**                                                     | **安装方法**                                                 |
+| -------- | ------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 客户端   | 一元拦截器 (`UnaryClientInterceptor`) | `func(ctx context.Context, method string, req, reply interface{}, cc *ClientConn, invoker UnaryInvoker, opts ...CallOption) error` | 实现通常分为三个部分：预处理、调用 RPC 方法、后处理。预处理可以检查和修改 RPC 调用参数，调用 `invoker` 执行 RPC 方法，后处理处理返回的回复和错误。 | 使用 `Dial` 配置 [`WithUnaryInterceptor`](https://godoc.org/google.golang.org/grpc#WithUnaryInterceptor) |
+| 客户端   | 流拦截器 (`StreamClientInterceptor`)  | `func(ctx context.Context, desc *StreamDesc, cc *ClientConn, method string, streamer Streamer, opts ...CallOption) (ClientStream, error)` | 实现通常包括预处理和流操作拦截。预处理类似于一元拦截器，流操作拦截通过包装 `ClientStream` 并重载其方法实现。 | 使用 `Dial` 配置 [`WithStreamInterceptor`](https://godoc.org/google.golang.org/grpc#WithStreamInterceptor) |
+| 服务器端 | 一元拦截器 (`UnaryServerInterceptor`) | `func(ctx context.Context, req interface{}, info *UnaryServerInfo, handler UnaryHandler) (resp interface{}, err error)` | 参考客户端一元拦截器的实现和说明。                           | 使用 `NewServer` 配置 [`UnaryInterceptor`](https://godoc.org/google.golang.org/grpc#UnaryInterceptor) |
+| 服务器端 | 流拦截器 (`StreamServerInterceptor`)  | `func(srv interface{}, ss ServerStream, info *StreamServerInfo, handler StreamHandler) error` | 参考客户端流拦截器的实现和说明。                             | 使用 `NewServer` 配置 [`StreamInterceptor`](https://godoc.org/google.golang.org/grpc#StreamInterceptor) |
+
+​																															gRPC 拦截器对比
 
