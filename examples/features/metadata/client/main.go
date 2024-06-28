@@ -23,6 +23,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/resolver"
 	"io"
 	"log"
 	"time"
@@ -287,6 +288,7 @@ const message = "this is examples/metadata"
 
 func main() {
 	flag.Parse()
+	resolver.SetDefaultScheme("passthrough")
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
