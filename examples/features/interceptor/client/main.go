@@ -55,9 +55,9 @@ func unaryInterceptor(ctx context.Context, method string, req, reply any, cc *gr
 		}
 	}
 	if !credsConfigured {
-		opts = append(opts, grpc.PerRPCCredentials(oauth.TokenSource{
-			TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: fallbackToken}),
-		}))
+		creds := oauth.TokenSource{
+			TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: fallbackToken})}
+		opts = append(opts, grpc.PerRPCCredentials(creds))
 	}
 	start := time.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)

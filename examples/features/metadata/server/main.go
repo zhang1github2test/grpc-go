@@ -47,38 +47,33 @@ type server struct {
 	pb.UnimplementedEchoServer
 }
 
-// UnaryEcho 普通类型方法设置和获取元数据
 func (s *server) UnaryEcho(ctx context.Context, in *pb.EchoRequest) (*pb.EchoResponse, error) {
-	fmt.Printf("--- UnaryEcho ---\n")
-	// Create trailer in defer to record function return time.
+	log.Println("--- UnaryEcho ---")
+	// 数据完成后向客户端写入trailer
 	defer func() {
-		// 处理完成后设置trailer元数据
-		trailer := metadata.Pairs("timestamp", time.Now().Format(timestampFormat))
+		trailer := metadata.Pairs("timeStamp", time.Now().Format(timestampFormat))
 		grpc.SetTrailer(ctx, trailer)
 	}()
-
-	// Read metadata from client.
-	// 读取来自客户的元数据
+	// 读取来自客户端的元数据
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "UnaryEcho: failed to get metadata")
+		return nil, status.Errorf(codes.DataLoss, "UnaryEcho: failed to get metadata!")
 	}
 
-	// 打印从客户端获取到元数据
-	if t, ok := md["timestamp"]; ok {
-		fmt.Printf("timestamp from metadata:\n")
+	// 打印从客户端获取的元数据
+	if t, ok := md["timeStamp"]; ok {
+		log.Println("timestamp from metadata")
 		for i, e := range t {
-			fmt.Printf(" %d. %s\n", i, e)
+			log.Printf("%d. %v\n", i, e)
 		}
 	}
 
-	// Create and send header.
-	// 设置给客户的请header元数据
 	header := metadata.New(map[string]string{"location": "MTV", "timestamp": time.Now().Format(timestampFormat)})
+	// 向客户端写入head metadata
 	grpc.SendHeader(ctx, header)
-
-	fmt.Printf("request received: %v, sending echo\n", in)
-
+	//打印客户端发送过来的信息
+	log.Printf("request recived:%s", in)
+	// 返回结果给服务端
 	return &pb.EchoResponse{Message: in.Message}, nil
 }
 

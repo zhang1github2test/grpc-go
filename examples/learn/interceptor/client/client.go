@@ -24,6 +24,50 @@ func UnaryClientInterceptor(ctx context.Context, method string, req, reply any, 
 	log.Printf("end to invoker, method:%v, startTime is:%v, endTime is:%v, Spending time:%v", method, startTime.Format(time.RFC3339Nano), endTime.Format(time.RFC3339Nano), endTime.Sub(startTime))
 	return err
 }
+
+type WrappedStream struct {
+	grpc.ClientStream
+}
+
+func (c *WrappedStream) SendMsg(m any) error {
+	startTime := time.Now()
+	log.Printf("开始发送消息:%v", m)
+	err := c.ClientStream.SendMsg(m)
+	log.Printf("结束发送消息,错误信息：%v,耗时：%v", err, time.Now().Sub(startTime))
+	return err
+}
+
+func (c *WrappedStream) RecvMsg(m any) error {
+	log.Printf("Receive a message (Type: %T) at %v", m, time.Now().Format(time.RFC3339))
+	err := c.ClientStream.RecvMsg(m)
+	return err
+}
+
+func StreamClientInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
+	streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	maxSendMessageSizeConfigured := false
+	for _, o := range opts {
+		_, ok := o.(grpc.PerRPCCredsCallOption)
+		if ok {
+			maxSendMessageSizeConfigured = true
+			break
+		}
+	}
+
+	// 如果没有特殊配置发送消息的大小，那么就是设置为每次只能发送20个字节
+	if !maxSendMessageSizeConfigured {
+		opts = append(opts, grpc.MaxCallSendMsgSize(20))
+	}
+	clientStream, err := streamer(ctx, desc, cc, method, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WrappedStream{
+		clientStream,
+	}, err
+
+}
 func main() {
 	resolver.SetDefaultScheme("passthrough")
 	// 加载TLS证书
@@ -32,7 +76,8 @@ func main() {
 		log.Fatalf("failed to load creds: %v", err)
 	}
 
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(creds), grpc.WithUnaryInterceptor(UnaryClientInterceptor))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(creds), grpc.WithUnaryInterceptor(UnaryClientInterceptor),
+		grpc.WithStreamInterceptor(StreamClientInterceptor))
 
 	if err != nil {
 		log.Fatalf("failed to conn to server: %v", err)
@@ -41,7 +86,7 @@ func main() {
 	client := echo.NewEchoClient(conn)
 
 	// 调用服务端流式方法
-	callServerStream(client, "helo, world!")
+	callServerStream(client, "hello, world!")
 
 	// 一元方法客户端使用
 	callUnaryEcho(client, "hello world!")
