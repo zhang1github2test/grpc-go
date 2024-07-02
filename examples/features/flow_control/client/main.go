@@ -22,6 +22,7 @@ package main
 import (
 	"context"
 	"flag"
+	"google.golang.org/grpc/resolver"
 	"io"
 	"log"
 	"time"
@@ -38,6 +39,7 @@ var payload string = string(make([]byte, 8*1024)) // 8KB
 
 func main() {
 	flag.Parse()
+	resolver.SetDefaultScheme("passthrough")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
