@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/examples/data"
 	"google.golang.org/grpc/examples/learn/echo/echo"
+	"google.golang.org/grpc/internal/resolver/dns"
 	"google.golang.org/grpc/resolver"
 	"io"
 	"log"
@@ -69,7 +70,8 @@ func StreamClientInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grp
 
 }
 func main() {
-	resolver.SetDefaultScheme("passthrough")
+	//resolver.SetDefaultScheme("passthrough")
+	resolver.Register(dns.NewBuilder())
 	// 加载TLS证书
 	creds, err := credentials.NewClientTLSFromFile(data.Path("x509/ca_cert.pem"), "x.test.example.com")
 	if err != nil {

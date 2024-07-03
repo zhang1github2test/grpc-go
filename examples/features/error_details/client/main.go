@@ -22,6 +22,7 @@ package main
 import (
 	"context"
 	"flag"
+	"google.golang.org/grpc/resolver"
 	"log"
 	"os"
 	"time"
@@ -37,7 +38,7 @@ var addr = flag.String("addr", "localhost:50052", "the address to connect to")
 
 func main() {
 	flag.Parse()
-
+	resolver.SetDefaultScheme("passthrough")
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

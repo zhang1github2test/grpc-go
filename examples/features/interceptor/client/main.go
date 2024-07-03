@@ -23,15 +23,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/examples/data"
 	"io"
 	"log"
 	"time"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
-	"google.golang.org/grpc/examples/data"
 	ecpb "google.golang.org/grpc/examples/features/proto/echo"
 )
 

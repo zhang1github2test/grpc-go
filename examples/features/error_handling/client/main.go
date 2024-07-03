@@ -22,22 +22,22 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
-	"os/user"
-	"time"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/status"
+	"log"
+	"os/user"
+	"time"
 )
 
 var addr = flag.String("addr", "localhost:50052", "the address to connect to")
 
 func main() {
 	flag.Parse()
-
+	resolver.SetDefaultScheme("passthrough")
 	name := "unknown"
 	if u, err := user.Current(); err == nil && u.Username != "" {
 		name = u.Username

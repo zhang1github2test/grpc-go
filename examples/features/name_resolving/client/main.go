@@ -22,13 +22,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	ecpb "google.golang.org/grpc/examples/features/proto/echo"
 	"google.golang.org/grpc/resolver"
+	"log"
 )
 
 const (
@@ -39,9 +37,9 @@ const (
 )
 
 func callUnaryEcho(c ecpb.EchoClient, message string) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.UnaryEcho(ctx, &ecpb.EchoRequest{Message: message})
+	//ctx, cancel := context.WithTimeout(context.Background())
+	//defer cancel()
+	r, err := c.UnaryEcho(context.Background(), &ecpb.EchoRequest{Message: message})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}

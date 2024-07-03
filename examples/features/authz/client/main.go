@@ -23,6 +23,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/examples/data"
+	"google.golang.org/grpc/resolver"
 	"io"
 	"log"
 	"time"
@@ -30,9 +33,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
-	"google.golang.org/grpc/examples/data"
 	"google.golang.org/grpc/examples/features/authz/token"
 	ecpb "google.golang.org/grpc/examples/features/proto/echo"
 	"google.golang.org/grpc/status"
@@ -92,7 +93,7 @@ func newCredentialsCallOption(t token.Token) grpc.CallOption {
 
 func main() {
 	flag.Parse()
-
+	resolver.SetDefaultScheme("passthrough")
 	// Create tls based credential.
 	creds, err := credentials.NewClientTLSFromFile(data.Path("x509/ca_cert.pem"), "x.test.example.com")
 	if err != nil {

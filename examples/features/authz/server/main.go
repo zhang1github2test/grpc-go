@@ -50,7 +50,7 @@ const (
 		"name": "authz",
 		"allow_rules": [
 			{
-				"name": "allow_UnaryEcho",
+				"name": "allow2_UnaryEcho23324",
 				"request": {
 					"paths": ["/grpc.examples.echo.Echo/UnaryEcho"],
 					"headers": [
@@ -83,7 +83,7 @@ const (
 
 var (
 	port     = flag.Int("port", 50051, "the port to serve on")
-	authzOpt = flag.String("authz-option", authzOptStatic, "the authz option (static or filewatcher)")
+	authzOpt = flag.String("authz-option", authzOptFileWatcher, "the authz option (static or filewatcher)")
 
 	errMissingMetadata = status.Errorf(codes.InvalidArgument, "missing metadata")
 )

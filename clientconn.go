@@ -726,6 +726,7 @@ func (cc *ClientConn) maybeApplyDefaultServiceConfig() {
 }
 
 func (cc *ClientConn) updateResolverStateAndUnlock(s resolver.State, err error) error {
+	// 用来告知客户端已经完成了地址解析,不然的话客户调用会等待地址解析完成,直到ctx超时。
 	defer cc.firstResolveEvent.Fire()
 	// Check if the ClientConn is already closed. Some fields (e.g.
 	// balancerWrapper) are set to nil when closing the ClientConn, and could
