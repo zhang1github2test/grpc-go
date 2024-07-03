@@ -83,6 +83,29 @@ func UnaryServerInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 	return
 }
 
+// wrappedStream wraps around the embedded grpc.ServerStream, and intercepts the RecvMsg and
+// SendMsg method call.
+type wrappedStream struct {
+	grpc.ServerStream
+}
+
+func (w *wrappedStream) RecvMsg(m any) error {
+	log.Printf("Receive a message (Type: %T) at %s", m, time.Now().Format(time.RFC3339))
+	return w.ServerStream.RecvMsg(m)
+}
+
+func (w *wrappedStream) SendMsg(m any) error {
+	log.Printf("Send a message (Type: %T) at %v", m, time.Now().Format(time.RFC3339))
+	return w.ServerStream.SendMsg(m)
+}
+
+func StreamServerInterceptor(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	log.Printf("start FullMethod: %v, IsClientStream:%v, IsServerStream:%v", info.FullMethod, info.IsClientStream, info.IsServerStream)
+	err := handler(srv, &wrappedStream{ss})
+	log.Printf("end FullMethod: %v, IsClientStream:%v, IsServerStream:%v", info.FullMethod, info.IsClientStream, info.IsServerStream)
+	return err
+}
+
 func main() {
 	// 加载TLS文件
 	creds, err := credentials.NewServerTLSFromFile(data.Path("x509/server_cert.pem"), data.Path("x509/server_key.pem"))
@@ -90,7 +113,7 @@ func main() {
 		log.Fatalf("load creds failed:%v", err)
 	}
 
-	s := grpc.NewServer(grpc.Creds(creds), grpc.ChainUnaryInterceptor(UnaryServerInterceptor))
+	s := grpc.NewServer(grpc.Creds(creds), grpc.ChainUnaryInterceptor(UnaryServerInterceptor), grpc.ChainStreamInterceptor(StreamServerInterceptor))
 	echo.RegisterEchoServer(s, &EchoServer{})
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))

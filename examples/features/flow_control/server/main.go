@@ -68,6 +68,8 @@ func (s *server) BidirectionalStreamingEcho(stream pb.Echo_BidirectionalStreamin
 			after := time.NewTimer(time.Second)
 			select {
 			case <-sentOne:
+				log.Printf("to stop  after.")
+				log.Printf("to stop  after.")
 				after.Stop()
 			case <-after.C:
 				log.Printf("Sending is blocked.")
@@ -84,7 +86,7 @@ func (s *server) BidirectionalStreamingEcho(stream pb.Echo_BidirectionalStreamin
 			log.Printf("Error sending data: %v", err)
 			return err
 		}
-		sentOne <- struct{}{}
+		//sentOne <- struct{}{}
 	}
 	log.Printf("Sent %v messages.", i)
 
