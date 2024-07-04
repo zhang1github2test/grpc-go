@@ -456,3 +456,138 @@ func (s *server) Chat(stream pb.Greeter_ChatServer) error {
 
 ​																															gRPC 拦截器对比
 
+
+
+# 五、GRPC的启用压缩
+
+| 优点                                                         | 缺点                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **减少网络带宽使用**                                         | **增加 CPU 开销**                                            |
+| GZIP 压缩显著减小数据包大小，减少网络传输所需带宽。          | 压缩和解压缩数据需要额外的 CPU 资源，可能导致性能下降。      |
+| **提高传输速度**                                             | **延迟增加**                                                 |
+| 在带宽限制条件下，数据量减少可以提高传输速度，使通信更快速。 | 压缩和解压缩本身会引入额外的延迟，特别是在数据量较小且网络带宽较高的情况下。 |
+| **降低传输成本**                                             | **配置复杂性**                                               |
+| 特别是在云服务中，压缩数据可以降低传输量，从而减少成本。     | 启用压缩需要额外的配置和代码修改，增加了开发和维护的复杂性。 |
+| **优化用户体验**                                             | **兼容性问题**                                               |
+| 对用户来说，较快的响应时间和更少的数据消耗意味着更好的用户体验，特别是在移动网络环境下。 | 并不是所有客户端和服务器都支持 GZIP 压缩，可能引发兼容性问题。 |
+
+## 客户端配置：
+
+在调用客户端方法的时候添加上grpc.UseCompressor(gzip.Name)。如下所示：
+
+```
+res, err := c.UnaryEcho(ctx, &pb.EchoRequest{Message: msg}, grpc.UseCompressor(gzip.Name))
+```
+
+## 服务端配置：
+
+在import的代码端中安装gzip来进行解压和压缩,如下所示：
+
+```go
+_ "google.golang.org/grpc/encoding/gzip" // Install the gzip compressor
+```
+
+## 完整客户端的示例为：
+
+```go
+// Binary client is an example client.
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"google.golang.org/grpc/resolver"
+	"log"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/encoding/gzip" // Install the gzip compressor
+	pb "google.golang.org/grpc/examples/features/proto/echo"
+)
+
+var addr = flag.String("addr", "localhost:50051", "the address to connect to")
+
+func main() {
+	flag.Parse()
+	resolver.SetDefaultScheme("passthrough")
+	// Set up a connection to the server.
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	c := pb.NewEchoClient(conn)
+
+	// Send the RPC compressed.  If all RPCs on a client should be sent this
+	// way, use the DialOption:
+	// grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name))
+	var msg = "Send the RPC compressed.  If all RPCs on a client should be sent this" + "way, use the DialOption:"
+
+	log.Println("原始消息长度", len(msg))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	res, err := c.UnaryEcho(ctx, &pb.EchoRequest{Message: msg}, grpc.UseCompressor(gzip.Name))
+	fmt.Printf("UnaryEcho call returned %q, %v\n", res.GetMessage(), err)
+	if err != nil || res.GetMessage() != msg {
+		log.Fatalf("Message=%q, err=%v; want Message=%q, err=<nil>", res.GetMessage(), err, msg)
+	}
+
+	res, err = c.UnaryEcho(ctx, &pb.EchoRequest{Message: msg})
+	fmt.Printf("UnaryEcho call returned %q, %v\n", res.GetMessage(), err)
+	if err != nil || res.GetMessage() != msg {
+		log.Fatalf("Message=%q, err=%v; want Message=%q, err=<nil>", res.GetMessage(), err, msg)
+	}
+
+}
+
+```
+
+## 完整服务端示例为：
+
+```go
+// Binary server is an example server.
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"net"
+
+	"google.golang.org/grpc"
+	_ "google.golang.org/grpc/encoding/gzip" // Install the gzip compressor
+
+	pb "google.golang.org/grpc/examples/features/proto/echo"
+)
+
+var port = flag.Int("port", 50051, "the port to serve on")
+
+type server struct {
+	pb.UnimplementedEchoServer
+}
+
+func (s *server) UnaryEcho(ctx context.Context, in *pb.EchoRequest) (*pb.EchoResponse, error) {
+	fmt.Printf("UnaryEcho called with message %q\n", in.GetMessage())
+	return &pb.EchoResponse{Message: in.Message}, nil
+}
+
+func main() {
+	flag.Parse()
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	fmt.Printf("server listening at %v\n", lis.Addr())
+
+	s := grpc.NewServer()
+	pb.RegisterEchoServer(s, &server{})
+	s.Serve(lis)
+}
+
+```
+

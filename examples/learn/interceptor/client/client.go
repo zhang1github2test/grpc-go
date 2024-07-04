@@ -88,7 +88,7 @@ func main() {
 	client := echo.NewEchoClient(conn)
 
 	// 调用服务端流式方法
-	callServerStream(client, "hello, world!")
+	//callServerStream(client, "hello, world!")
 
 	// 一元方法客户端使用
 	callUnaryEcho(client, "hello world!")
@@ -103,7 +103,7 @@ func main() {
 
 func callUnaryEcho(client echo.EchoClient, msg string) {
 	log.Printf("--- UnaryEcho start---\n")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10000)
 	defer cancel()
 	unaryEcho, err := client.UnaryEcho(ctx, &echo.EchoRequest{Message: msg})
 

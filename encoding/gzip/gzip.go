@@ -85,6 +85,7 @@ func (z *writer) Close() error {
 type reader struct {
 	*gzip.Reader
 	pool *sync.Pool
+	s    string
 }
 
 func (c *compressor) Decompress(r io.Reader) (io.Reader, error) {

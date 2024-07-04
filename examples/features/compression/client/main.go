@@ -23,6 +23,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"google.golang.org/grpc/resolver"
 	"log"
 	"time"
 
@@ -36,7 +37,7 @@ var addr = flag.String("addr", "localhost:50051", "the address to connect to")
 
 func main() {
 	flag.Parse()
-
+	resolver.SetDefaultScheme("passthrough")
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -49,10 +50,18 @@ func main() {
 	// Send the RPC compressed.  If all RPCs on a client should be sent this
 	// way, use the DialOption:
 	// grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name))
-	const msg = "compress"
+	var msg = "Send the RPC compressed.  If all RPCs on a client should be sent this" + "way, use the DialOption:"
+
+	log.Println("原始消息长度", len(msg))
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	res, err := c.UnaryEcho(ctx, &pb.EchoRequest{Message: msg}, grpc.UseCompressor(gzip.Name))
+	fmt.Printf("UnaryEcho call returned %q, %v\n", res.GetMessage(), err)
+	if err != nil || res.GetMessage() != msg {
+		log.Fatalf("Message=%q, err=%v; want Message=%q, err=<nil>", res.GetMessage(), err, msg)
+	}
+
+	res, err = c.UnaryEcho(ctx, &pb.EchoRequest{Message: msg})
 	fmt.Printf("UnaryEcho call returned %q, %v\n", res.GetMessage(), err)
 	if err != nil || res.GetMessage() != msg {
 		log.Fatalf("Message=%q, err=%v; want Message=%q, err=<nil>", res.GetMessage(), err, msg)

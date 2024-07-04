@@ -47,7 +47,7 @@ func main() {
 
 func callUnaryEcho(client echo.EchoClient, msg string) {
 	log.Printf("--- UnaryEcho start---\n")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1000)
 	defer cancel()
 	unaryEcho, err := client.UnaryEcho(ctx, &echo.EchoRequest{Message: msg})
 
